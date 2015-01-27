@@ -30,19 +30,21 @@ module.exports = function (grunt) {
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
-        files: ['bower.json'],
+        files: ['bower.jsongr'],
         tasks: ['wiredep']
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-        tasks: ['newer:jshint:all'],
+        //tasks: ['newer:jshint:all'],
+        tasks: [], 
         options: {
           livereload: '<%= connect.options.livereload %>'
         }
       },
       jsTest: {
         files: ['test/spec/{,*/}*.js'],
-        tasks: ['newer:jshint:test', 'karma']
+        //tasks: ['newer:jshint:test', 'karma']
+        tasks: []
       },
       compass: {
         files: ['<%= yeoman.app %>/styles/{,*/}*.{scss,sass}'],
@@ -71,10 +73,34 @@ module.exports = function (grunt) {
         hostname: 'localhost',
         livereload: 35729
       },
+      proxies: [
+      {
+        context: '/api', 
+        host: 'localhost', 
+        port: 3000,
+        https: true
+      }], 
       livereload: {
         options: {
-          open: true,
           middleware: function (connect) {
+          var middlewares = [];
+          // Setup the proxy
+          middlewares.push(require('grunt-connect-proxy/lib/utils').proxyRequest);
+
+          // Serve static files
+          middlewares.push(
+              connect.static('.tmp'),
+              connect().use(
+                  '/bower_components',
+                  connect.static('./bower_components')
+              ),
+              connect.static(appConfig.app)
+          );
+
+          return middlewares;
+                },
+          open: true,
+          /*middleware: function (connect) {
             return [
               connect.static('.tmp'),
               connect().use(
@@ -83,7 +109,7 @@ module.exports = function (grunt) {
               ),
               connect.static(appConfig.app)
             ];
-          }
+          }*/
         }
       },
       test: {
@@ -382,12 +408,13 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'test/karma.conf.js',
-        singleRun: true
+        singleRun: false
       }
     }
   });
 
-
+  grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-connect-proxy');
   grunt.registerTask('serve', 'Compile then start a connect web server', function (target) {
     if (target === 'dist') {
       return grunt.task.run(['build', 'connect:dist:keepalive']);
@@ -398,6 +425,7 @@ module.exports = function (grunt) {
       'wiredep',
       'concurrent:server',
       'autoprefixer',
+      'configureProxies:server',
       'connect:livereload',
       'watch'
     ]);
@@ -412,6 +440,7 @@ module.exports = function (grunt) {
     'clean:server',
     'concurrent:test',
     'autoprefixer',
+    'configureProxies:server',
     'connect:test',
     'karma'
   ]);

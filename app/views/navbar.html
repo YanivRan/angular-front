@@ -1,0 +1,13 @@
+<div class="header" >
+  <ul class="nav nav-pills pull-right">
+    <li ng-class="{active:isActive('/')}"><a ng-href="#/">Home</a></li>
+    <li ng-class="{active:isActive('/edges')}"><a ng-href="#/edges" >Edges</a></li>
+  </ul>
+  <h3 class="text-muted">swFront</h3>
+</div>
+
+<div ng-view=""></div>
+
+<div class="footer">
+  <p><span class="glyphicon glyphicon-heart"></span> from the Yeoman team</p>
+</div>
